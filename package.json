@@ -1,0 +1,11 @@
+{
+  "name": "history",
+  "version": "1.0.0",
+  "description": "",
+  "dependencies": {
+    "aws-sdk": "^2.1022.0",
+    "express": "^4.17.1",
+    "query-string": "^7.0.1",
+    "serverless-http": "^2.7.0"
+  }
+}

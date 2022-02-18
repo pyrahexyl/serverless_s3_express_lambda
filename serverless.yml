@@ -1,0 +1,66 @@
+service: rest-s3 #ここの名前がlamda関数名のbaseになります
+provider:
+  name: aws
+  runtime: nodejs14.x
+  lambdaHashingVersion: 20201221
+  stage: develop             # デフォは"dev"uppercase不可
+  region: ap-northeast-1 # デフォは "us-east-1"
+  environment:
+    S3_BUCKET: ${self:provider.stage}.storage2 #S3バケットの名前（重複不可）
+functions:
+  get:
+    handler: handler.get
+    events:
+      - http:
+          path: storage/get/{key}
+          method: get
+  set:
+    handler: handler.set
+    events:
+      - http:
+          path: storage/set/{key}
+          method: post
+  remove:
+    handler: handler.remove
+    events:
+      - http:
+          path: storage/remove/{key}
+          method: post
+  list:
+    handler: handler.list
+    events:
+      - http:
+          path: storage/list
+          method: get
+resources:
+  Resources:
+    Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.S3_BUCKET}
+        ## デフォルト暗号化
+        BucketEncryption:
+          ServerSideEncryptionConfiguration:
+            - ServerSideEncryptionByDefault:
+                SSEAlgorithm: AES256
+    S3IamPolicy:
+      Type: AWS::IAM::Policy
+      DependsOn: Bucket
+      Properties:
+        PolicyName: lambda-s3
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+              Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}/*
+            - Effect: Allow
+              Action:
+                - s3:ListBucket
+              Resource: arn:aws:s3:::${self:provider.environment.S3_BUCKET}
+        Roles:
+          - Ref: IamRoleLambdaExecution
+
