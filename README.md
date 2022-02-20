@@ -2,6 +2,7 @@
 
 このプロジェクトは、Node14 Expressを利用し
 AWS LambdaからS3にJSONデータを保存するものです。
+※aws-cliのセットアップが終わっている前提のツールです
 
 
 ### Deployment
