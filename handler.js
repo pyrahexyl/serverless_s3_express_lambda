@@ -5,27 +5,20 @@ const AWS = require("aws-sdk");
 const s3 = new AWS.S3();
 
 // S3バケット名
-const S3_BUCKETNAME = process.env.S3_BUCKET;//prd.storage1
+const S3_BUCKETNAME = process.env.S3_BUCKET;//serverless.ymlから環境変数を取得
 
 
 /**
- * S3からデータを返す
- *  GET /(stage)/storage/get/{key}
- *
- *  example)
+ *  GET 
  *    $ curl 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/storage/get/foo.txt'
  */
 module.exports.get = (event, context, callback) => {
-  //--------------------------
-  // 引数チェック
-  //--------------------------
   const key = event.pathParameters.key;
   let err = [];
   if( ! ( key !== "" && key.match(/^([a-zA-Z0-9]{1,})\.json$/) ) ){
     err.push("invalid key")
   }
 
-  // エラーがあれば終了
   if( err.length >= 1 ){
     callback(null, {
       statusCode: 200,
@@ -35,9 +28,6 @@ module.exports.get = (event, context, callback) => {
     return(false);
   }
 
-  //--------------------------
-  // S3からデータ取得
-  //--------------------------
   const params = {
     Bucket: S3_BUCKETNAME,
     Key: key,
@@ -61,12 +51,8 @@ module.exports.get = (event, context, callback) => {
 
 
 /**
- * S3に保存する
- *  POST /(stage)/storage/set/{key}
- *  data=xxxxx
- *
- *  example)
- *    $ curl -d 'data=xxxxx' -X POST 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/storage/set/foo.txt'
+ *  POST 
+ *    $ curl -d 'data=xxxxx' -X POST 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/storage/set/{key}'
  */
 module.exports.set = (event, context, callback) => {
   //--------------------------
@@ -82,7 +68,6 @@ module.exports.set = (event, context, callback) => {
     err.push("invalid data")
   }
 
-  // エラーがあれば終了
   if( err.length >= 1 ){
     callback(null, {
       statusCode: 200,
@@ -92,12 +77,11 @@ module.exports.set = (event, context, callback) => {
     return(false);
   }
 
-  //--------------------------
-  // S3へ保存
-  //--------------------------
   const request = {
     text:body.data,
-    url:body.url
+    url:body.url,
+    title:body.title,
+    timestamp:body.now
   }
   const params = {
     Bucket: S3_BUCKETNAME,
@@ -124,23 +108,16 @@ module.exports.set = (event, context, callback) => {
 
 
 /**
- * S3からデータを削除する
- *  POST /(stage)/storage/remove/{key}
- *
- *  example)
- *    $ curl -X POST 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/storage/remove/foo.txt'
+ *  POST 
+ *    $ curl -X POST 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/storage/remove/{key}'
  */
 module.exports.remove = (event, context, callback) => {
-  //--------------------------
-  // 引数チェック
-  //--------------------------
   const key = event.pathParameters.key;
   let err = [];
   if( ! ( key !== "" && key.match(/^([a-zA-Z0-9]{1,})\.json$/) ) ){
     err.push("invalid key")
   }
 
-  // エラーがあれば終了
   if( err.length >= 1 ){
     callback(null, {
       statusCode: 200,
@@ -150,9 +127,6 @@ module.exports.remove = (event, context, callback) => {
     return(false);
   }
 
-  //--------------------------
-  // S3からデータ削除
-  //--------------------------
   const params = {
     Bucket: S3_BUCKETNAME,
     Key: key,
@@ -176,10 +150,7 @@ module.exports.remove = (event, context, callback) => {
 
 
 /**
- * S3のオブジェクト一覧を取得
- *  POST /(stage)/storage/list
- *
- *  example)
+ *  POST 
  *    $ curl 'https://xxxxx.execute-api.us-east-1.amazonaws.com/dev/storage/list'
  */
 module.exports.list = (event, context, callback) => {
